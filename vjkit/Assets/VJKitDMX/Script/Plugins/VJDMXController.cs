@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Runtime.InteropServices;
 
-public class VJDMX512Controller : MonoBehaviour {
+public class VJDMXController : MonoBehaviour {
 	private byte[] channelData = new byte[512];
 	
 	[DllImport ("UnityOpenDMXUSBPlugin")] 

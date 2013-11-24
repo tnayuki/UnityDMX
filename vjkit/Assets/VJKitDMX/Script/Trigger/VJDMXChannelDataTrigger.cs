@@ -31,9 +31,9 @@
 using UnityEngine;
 using System.Collections;
 
-[AddComponentMenu("VJKit/Triggers/DMX512 Channel Data Trigger")]
-public class VJDMX512ChannelDataTrigger : VJBaseTrigger {
-	public VJDMX512Controller dmx512Controller;
+[AddComponentMenu("VJKit/Triggers/DMX Channel Data Trigger")]
+public class VJDMXChannelDataTrigger : VJBaseTrigger {
+	public VJDMXController dmxController;
 	
 	[Range(1,512)]
 	public int channelNumber = 1;
@@ -41,9 +41,9 @@ public class VJDMX512ChannelDataTrigger : VJBaseTrigger {
 	public float dataDurationSec = 1.0f;
 
 	IEnumerator _OutputData(float value) {
-		dmx512Controller.SetChannelData(channelNumber, Mathf.Clamp01(value));
+		dmxController.SetChannelData(channelNumber, Mathf.Clamp01(value));
 		yield return new WaitForSeconds(dataDurationSec);
-		dmx512Controller.SetChannelData(channelNumber, 0.0f);
+		dmxController.SetChannelData(channelNumber, 0.0f);
 	}
 
 	public override void OnVJTrigger(GameObject go, float value) {

@@ -31,14 +31,14 @@
 using UnityEngine;
 using System.Collections;
 
-[AddComponentMenu("VJKit/Modifiers/DMX512 Channel Data Modifier")]
-public class VJDMX512ChannelDataModifier : VJBaseModifier {
-	public VJDMX512Controller dmx512Controller;
+[AddComponentMenu("VJKit/Modifiers/DMX Channel Data Modifier")]
+public class VJDMXChannelDataModifier : VJBaseModifier {
+	public VJDMXController dmxController;
 
 	[Range(1, 512)]
 	public int channelNumber;
 
 	public override void VJPerformAction(GameObject go, float value) {
-		dmx512Controller.SetChannelData(channelNumber, Mathf.Clamp01(value));
+		dmxController.SetChannelData(channelNumber, Mathf.Clamp01(value));
 	}
 }
