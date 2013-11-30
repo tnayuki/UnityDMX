@@ -37,7 +37,10 @@ public class VJDMXChannelDataTrigger : VJBaseTrigger {
 	
 	[Range(1, 512)]
 	public int channelNumber = 1;
-
+	
+	public bool fixValue = false;
+	public float fixedValue = 0.0f;
+	
 	public float dataDurationSec = 1.0f;
 
 	IEnumerator _OutputData(float value) {
@@ -47,6 +50,6 @@ public class VJDMXChannelDataTrigger : VJBaseTrigger {
 	}
 
 	public override void OnVJTrigger(GameObject go, float value) {
-		StartCoroutine(_OutputData(value));
+		StartCoroutine(_OutputData(fixValue ? fixedValue : value));
 	}
 }
