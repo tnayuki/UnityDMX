@@ -29,15 +29,13 @@
  * Entertainment LLC.
  */
 using UnityEngine;
+using System.Collections;
+using UnityEditor;
+using System;
+using System.Collections.Generic;
 
-[AddComponentMenu("VJKit/DMX/Set Channel Data")]
-public class VJDMXChannelDataModifier : VJBaseModifier {
-	public VJDMXController dmxController;
-
-	[Range(1, 512)]
-	public int channelNumber = 1;
-
-	public override void VJPerformAction(GameObject go, float value) {
-		dmxController.SetChannelData(channelNumber, Mathf.Clamp01(value));
-	}
+[CustomEditor(typeof(VJDMXChannelDataModifier))]
+[CanEditMultipleObjects]
+public class VJDMXChannelDataModifierEditor : VJBaseModifierEditor 
+{
 }

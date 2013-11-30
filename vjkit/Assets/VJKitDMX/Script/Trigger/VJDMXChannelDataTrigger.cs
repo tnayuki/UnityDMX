@@ -31,11 +31,11 @@
 using UnityEngine;
 using System.Collections;
 
-[AddComponentMenu("VJKit/Triggers/DMX Channel Data Trigger")]
+[AddComponentMenu("VJKit/DMX/Set Channel Data(Once)")]
 public class VJDMXChannelDataTrigger : VJBaseTrigger {
 	public VJDMXController dmxController;
 	
-	[Range(1,512)]
+	[Range(1, 512)]
 	public int channelNumber = 1;
 
 	public float dataDurationSec = 1.0f;
