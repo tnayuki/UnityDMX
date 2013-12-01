@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Runtime.InteropServices;
 
-public class VJDMXController : MonoBehaviour {
+public class DMXController : MonoBehaviour {
 	public bool blackOut;
 	
 	// Debug Window	properties
@@ -18,15 +18,15 @@ public class VJDMXController : MonoBehaviour {
 	private byte[] channelData = new byte[512];
 	
 	[DllImport ("UnityOpenDMXUSBPlugin")] 
-	private static extern void Initialize(); 
+	private static extern void InitializePlugin(); 
 
 	[DllImport ("UnityOpenDMXUSBPlugin")] 
 	private static extern void SendChannelData(IntPtr data); 
 
 	public virtual void Awake() {
-		windowRect.x = PlayerPrefs.GetFloat("vjkit.window.pos." + gameObject.name + ".x", Screen.width - 400.0f);
-		windowRect.y = PlayerPrefs.GetFloat("vjkit.window.pos." + gameObject.name + ".y", 20.0f);
-		debugWindow  = 1 == PlayerPrefs.GetInt("vjkit.window." + gameObject.name + ".debug", 1);
+		windowRect.x = PlayerPrefs.GetFloat("dmx.window.pos." + gameObject.name + ".x", Screen.width - 400.0f);
+		windowRect.y = PlayerPrefs.GetFloat("dmx.window.pos." + gameObject.name + ".y", 20.0f);
+		debugWindow  = 1 == PlayerPrefs.GetInt("dmx.window." + gameObject.name + ".debug", 1);
 		windowRect.width = 400;
 		windowId = windowIDSeed;
 		windowIDSeed++;
@@ -69,28 +69,24 @@ public class VJDMXController : MonoBehaviour {
 	}
 	
 	public virtual void OnApplicationQuit() {
-		PlayerPrefs.SetFloat("vjkit.window.pos." + gameObject.name + ".x", windowRect.x);
-		PlayerPrefs.SetFloat("vjkit.window.pos." + gameObject.name + ".y", windowRect.y);
-		PlayerPrefs.SetInt("vjkit.window." + gameObject.name + ".debug", (debugWindow? 1:0));
+		PlayerPrefs.SetFloat("dmx.window.pos." + gameObject.name + ".x", windowRect.x);
+		PlayerPrefs.SetFloat("dmx.window.pos." + gameObject.name + ".y", windowRect.y);
+		PlayerPrefs.SetInt("dmx.window." + gameObject.name + ".debug", (debugWindow? 1:0));
 	}
 
-	// Use this for initialization
-	void Start () {
-		Initialize();
+	void OnEnable() {
+		InitializePlugin();
 		
 		patchingThread = new Thread(PatchingThread);
 		patchingThread.Start();
 	}
 	
-	void OnDestroy() {
-        Debug.Log("Script was destroyed");
-		
+	void OnDisable() {
 		patchingThread.Abort();
     }
 	
-	public void SetChannelData(int channel, float value) {
+	public void SetChannelData(int channel, byte data) {
 		channel = Mathf.Clamp(channel, 1, 512);
-		byte data = (byte)Mathf.Clamp(255.0f * value, 0.0f, 255.0f);
 		
 		lock (channelData) {
 			channelData[channel - 1] = data;
