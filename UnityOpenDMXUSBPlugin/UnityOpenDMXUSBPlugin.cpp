@@ -15,7 +15,12 @@
 #include <ftdi.h>
 #include <libusb.h>
 
-struct ftdi_context ftdic;
+static struct ftdi_context *ftdic;
+
+static unsigned char buffer[512];
+static dispatch_semaphore_t buffer_semaphore;
+
+static bool stop = false;
 
 #define DMX_MAB 160    // Mark After Break 8 uS or more
 #define DMX_BREAK 110  // Break 88 uS or more
@@ -98,16 +103,36 @@ static int dmx_write(struct ftdi_context* ftdic, unsigned char* dmx, int size)
 }
 
 extern "C" {
-    void Initialize() {
-        dmx_init(&ftdic);
+    void InitializePlugin() {
+        buffer_semaphore = dispatch_semaphore_create(1);
+        
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            ftdic = ftdi_new();
+            dmx_init(ftdic);
+            
+            unsigned char dmx[513];
+            while (!stop) {
+                dmx[0] = 0;
+                
+                dispatch_semaphore_wait(buffer_semaphore, DISPATCH_TIME_FOREVER);
+                memcpy(dmx + 1, buffer, 512);
+                dispatch_semaphore_signal(buffer_semaphore);
+                
+                dmx_write(ftdic, dmx, 513);
+            }
+            
+            ftdi_free(ftdic);
+            ftdic = NULL;
+        });
     }
 
-    void SendChannelData(unsigned char channelData[]) {
-        unsigned char buf[513];
-        
-        buf[0] = 0;
-        memcpy(buf + 1, channelData, 512);
+    void DeinitializePlugin() {
+        stop = true;
+    }
 
-        dmx_write(&ftdic, buf, 512);
+    void UpdateBuffer(unsigned char *buffer2) {
+        dispatch_semaphore_wait(buffer_semaphore, DISPATCH_TIME_FOREVER);
+        memcpy(buffer, buffer2, 512);
+        dispatch_semaphore_signal(buffer_semaphore);
     }
 }
