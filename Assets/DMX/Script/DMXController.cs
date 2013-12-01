@@ -14,14 +14,16 @@ public class DMXController : MonoBehaviour {
 	
 	protected int page = 0;
 	
-	private Thread patchingThread;
 	private byte[] channelData = new byte[512];
 	
 	[DllImport ("UnityOpenDMXUSBPlugin")] 
 	private static extern void InitializePlugin(); 
 
 	[DllImport ("UnityOpenDMXUSBPlugin")] 
-	private static extern void SendChannelData(IntPtr data); 
+	private static extern void DeinitializePlugin(); 
+
+	[DllImport ("UnityOpenDMXUSBPlugin")] 
+	private static extern void UpdateBuffer(IntPtr data); 
 
 	public virtual void Awake() {
 		windowRect.x = PlayerPrefs.GetFloat("dmx.window.pos." + gameObject.name + ".x", Screen.width - 400.0f);
@@ -76,37 +78,21 @@ public class DMXController : MonoBehaviour {
 
 	void OnEnable() {
 		InitializePlugin();
-		
-		patchingThread = new Thread(PatchingThread);
-		patchingThread.Start();
 	}
 	
 	void OnDisable() {
-		patchingThread.Abort();
+		DeinitializePlugin();
     }
+
+	void LateUpdate() {
+		GCHandle channelDataHandle = GCHandle.Alloc(channelData, GCHandleType.Pinned);
+		UpdateBuffer(channelDataHandle.AddrOfPinnedObject());
+		channelDataHandle.Free();
+	}
 	
 	public void SetChannelData(int channel, byte data) {
 		channel = Mathf.Clamp(channel, 1, 512);
 		
-		lock (channelData) {
-			channelData[channel - 1] = data;
-		}
+		channelData[channel - 1] = data;
 	}
-
-	protected void PatchingThread() {
-		byte[] buffer = new byte[512];
-		
-		while (true) {
-			if (!blackOut) {
-				lock(channelData) { 
-					Buffer.BlockCopy(channelData, 0, buffer, 0, 512);
-				}
-			}
-
-			GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-			SendChannelData(bufferHandle.AddrOfPinnedObject());
-			bufferHandle.Free();
-		}
-	}
-
 }
