@@ -1,6 +1,6 @@
 ## DMX512 control
 
-ArtNetプロトコルを使用してDMX512の制御を行えるようにしました。
+UnityからDMX512の制御を行えるようになります。
 
 こんな感じです。
 http://youtu.be/ZJzVbb_IkU0
