@@ -1,11 +1,11 @@
 using UnityEngine;
 using System;
-using System.Threading;
-using System.Runtime.InteropServices;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 
-public class DMXController : MonoBehaviour {
-	public bool blackOut;
-	
+public abstract class DMXAbstractController : MonoBehaviour {
 	private bool showSliders;
 	
 	// Debug Window	properties
@@ -16,17 +16,8 @@ public class DMXController : MonoBehaviour {
 	
 	protected int page = 0;
 	
-	private byte[] channelData = new byte[512];
-	private byte[] blackOutChannelData = new byte[512];
-	
-	[DllImport ("UnityOpenDMXUSBPlugin")] 
-	private static extern void InitializePlugin(); 
-
-	[DllImport ("UnityOpenDMXUSBPlugin")] 
-	private static extern void DeinitializePlugin(); 
-
-	[DllImport ("UnityOpenDMXUSBPlugin")] 
-	private static extern void UpdateBuffer(IntPtr data); 
+	private byte[] currentChannelData = new byte[512];
+    private byte[] oldChannelData = new byte[512];
 
 	public virtual void Awake() {
 		windowRect.x = PlayerPrefs.GetFloat("dmx.window.pos." + gameObject.name + ".x", Screen.width - 400.0f);
@@ -44,7 +35,6 @@ public class DMXController : MonoBehaviour {
 		GUILayout.BeginHorizontal();
 		
 		showSliders = GUILayout.Toggle(showSliders, "Show sliders");
-		blackOut = GUILayout.Toggle(blackOut, "Black out");
 
 		GUILayout.EndHorizontal();
 		
@@ -59,9 +49,9 @@ public class DMXController : MonoBehaviour {
 				GUILayout.BeginHorizontal();
 				
 				for (int j = 0; j < 32; j++) {
-					float num = channelData[page * 64 + i * 32 + j] / 255.0f;
+					float num = currentChannelData[page * 64 + i * 32 + j] / 255.0f;
 					num = GUILayout.VerticalSlider(num, 1.0f, 0.0f);
-					channelData[page * 64 + i * 32 + j] = (byte)(num * 255.0f);
+					currentChannelData[page * 64 + i * 32 + j] = (byte)(num * 255.0f);
 				}
 	
 				GUILayout.EndHorizontal();
@@ -85,29 +75,17 @@ public class DMXController : MonoBehaviour {
 		PlayerPrefs.SetInt("dmx.window." + gameObject.name + ".showSliders", (showSliders ? 1 : 0));
 	}
 
-	void OnEnable() {
-		InitializePlugin();
-	}
-	
-	void OnDisable() {
-		DeinitializePlugin();
-    }
-
 	void LateUpdate() {
-		if (!blackOut) {
-			GCHandle channelDataHandle = GCHandle.Alloc(channelData, GCHandleType.Pinned);
-			UpdateBuffer(channelDataHandle.AddrOfPinnedObject());
-			channelDataHandle.Free();
-		} else {
-			GCHandle blackOutChannelDataHandle = GCHandle.Alloc(blackOutChannelData, GCHandleType.Pinned);
-			UpdateBuffer(blackOutChannelDataHandle.AddrOfPinnedObject());
-			blackOutChannelDataHandle.Free();
+		if (enabled && !currentChannelData.SequenceEqual(oldChannelData)) {
+			SendChannelData(currentChannelData);
+
+			Buffer.BlockCopy(currentChannelData, 0, oldChannelData, 0, 512);
 		}
 	}
 	
 	public void SetChannelData(int channel, byte data) {
-		channel = Mathf.Clamp(channel, 1, 512);
-		
-		channelData[channel - 1] = data;
+		currentChannelData[Mathf.Clamp(channel, 1, 512) - 1] = data;
 	}
+
+	protected abstract void SendChannelData(byte[] channelData);
 }

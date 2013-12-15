@@ -34,7 +34,7 @@ using System.Collections;
 [AddComponentMenu("VJKit/DMX/Output/Channel Data")]
 public class VJDMXChannelDataOutputModifier : VJBaseModifier {
 	[HideInInspector]
-	public DMXController dmxController;
+	public DMXAbstractController dmxController;
 
 	[Range(1, 512)]
 	public int channelNumber = 1;

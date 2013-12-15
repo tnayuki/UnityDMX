@@ -45,7 +45,7 @@ public class VJDMXChannelDataOutputModifierEditor : VJBaseModifierEditor
 		
 		VJDMXChannelDataOutputModifier modifier = target as VJDMXChannelDataOutputModifier;
 
-		DMXController[] dmxControllers = UnityEngine.Object.FindObjectsOfType(typeof(DMXController)) as DMXController[];
+		DMXAbstractController[] dmxControllers = UnityEngine.Object.FindObjectsOfType(typeof(DMXAbstractController)) as DMXAbstractController[];
 		if( dmxControllers.Length > 0 ) {
 			string[] options_dmxControllers = new string[dmxControllers.Length];
 			for(int i = 0; i < dmxControllers.Length; ++i) {
